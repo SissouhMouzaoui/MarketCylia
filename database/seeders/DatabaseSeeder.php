@@ -13,11 +13,12 @@ class DatabaseSeeder extends Seeder
     /**
      * Seed the application's database.
      */
-    public function run(): void
+public function run(): void
 {
-    // Création des rôles de base de l'application
-    $this->call([
-        RoleSeeder::class,
-    ]);
+    // Création des rôles de l'application
+    $this->call(RoleSeeder::class);
+
+    // Création du compte administrateur de test
+    $this->call(AdminUserSeeder::class);
 }
 }

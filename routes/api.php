@@ -19,3 +19,9 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user()->load('role');
 });
+// Route de test réservée aux administrateurs
+Route::get('/admin/test', function () {
+    return response()->json([
+        'message' => 'Bienvenue Admin !',
+    ]);
+})->middleware(['auth:sanctum', 'role:Admin']);
