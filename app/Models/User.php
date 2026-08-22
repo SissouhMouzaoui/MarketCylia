@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 // Attributs pouvant être remplis lors de la création d'un utilisateur
 #[Fillable(['name', 'email', 'password', 'role_id'])]
@@ -27,6 +28,16 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
+    /**
+ * Relation avec les produits du vendeur.
+ *
+ * Un utilisateur peut posséder plusieurs produits.
+ */
+    public function products()
+    {
+    return $this->hasMany(Product::class);
+    }
+
 
     /**
      * Get the attributes that should be cast.
@@ -40,4 +51,26 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+        /**
+     * ==========================================================
+     * RELATION AVEC LE PANIER
+     * ==========================================================
+     *
+     * Un utilisateur peut avoir plusieurs articles dans son panier.
+     */
+
+    public function cartItems(): HasMany
+    {
+        return $this->hasMany(CartItem::class);
+    }
+    /**
+ * ==========================================================
+ * COMMANDES DE L'UTILISATEUR
+ * ==========================================================
+ */
+
+public function orders(): HasMany
+{
+    return $this->hasMany(Order::class);
+}
 }

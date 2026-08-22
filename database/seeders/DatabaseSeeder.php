@@ -20,5 +20,8 @@ public function run(): void
 
     // Création du compte administrateur de test
     $this->call(AdminUserSeeder::class);
+
+    // Création du compte vendeur de test
+    $this->call(SellerUserSeeder::class);
 }
 }

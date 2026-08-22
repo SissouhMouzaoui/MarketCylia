@@ -13,13 +13,24 @@ use Illuminate\Validation\Rules;
 class RegisteredUserController extends Controller
 {
     /**
-     * Enregistre un nouvel utilisateur dans l'application.
+     * Enregistre un nouvel utilisateur.
      */
     public function store(Request $request): JsonResponse
     {
-        // Validation des informations envoyées par l'utilisateur
+        /*
+        ==========================================================
+        VALIDATION
+        ==========================================================
+        */
+
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+
+            'name' => [
+                'required',
+                'string',
+                'max:255'
+            ],
+
             'email' => [
                 'required',
                 'string',
@@ -28,36 +39,119 @@ class RegisteredUserController extends Controller
                 'max:255',
                 'unique:' . User::class,
             ],
+
             'password' => [
                 'required',
                 'confirmed',
                 Rules\Password::defaults(),
             ],
+
+            /*
+            ------------------------------------------------------
+            Type de compte
+            ------------------------------------------------------
+
+            customer = acheteur
+            seller   = vendeur
+
+            Admin n'est jamais accepté ici.
+            ------------------------------------------------------
+            */
+
+            'account_type' => [
+                'required',
+                'in:customer,seller'
+            ],
+
         ]);
 
-        // Attribution automatique du rôle Customer aux nouveaux utilisateurs
-        $customerRole = Role::where('name', 'Customer')->firstOrFail();
 
-        // Création du compte utilisateur
-        // Le mot de passe sera automatiquement hashé grâce au cast "hashed" du modèle User
+        /*
+        ==========================================================
+        DÉTERMINER LE RÔLE
+        ==========================================================
+        */
+
+        if ($validated['account_type'] === 'seller') {
+
+            $roleName = 'Seller';
+
+        } else {
+
+            $roleName = 'Customer';
+
+        }
+
+
+        /*
+        ==========================================================
+        RÉCUPÉRER LE RÔLE
+        ==========================================================
+        */
+
+        $role = Role::where(
+            'name',
+            $roleName
+        )->firstOrFail();
+
+
+        /*
+        ==========================================================
+        CRÉER L'UTILISATEUR
+        ==========================================================
+        */
+
         $user = User::create([
+
             'name' => $validated['name'],
+
             'email' => $validated['email'],
+
             'password' => $validated['password'],
-            'role_id' => $customerRole->id,
+
+            'role_id' => $role->id,
+
         ]);
 
-        // Création d'un token d'authentification avec Laravel Sanctum
-        $token = $user->createToken('marketcylia-token')->plainTextToken;
 
-        // Connexion de l'utilisateur après son inscription
+        /*
+        ==========================================================
+        CRÉER LE TOKEN
+        ==========================================================
+        */
+
+        $token =
+            $user
+                ->createToken('marketcylia-token')
+                ->plainTextToken;
+
+
+        /*
+        ==========================================================
+        CONNECTER L'UTILISATEUR
+        ==========================================================
+        */
+
         Auth::login($user);
 
-        // Retour d'une réponse JSON contenant les informations nécessaires au frontend
+
+        /*
+        ==========================================================
+        RÉPONSE
+        ==========================================================
+        */
+
         return response()->json([
-            'message' => 'Inscription réussie.',
-            'user' => $user->load('role'),
-            'token' => $token,
+
+            'message' =>
+                'Inscription réussie.',
+
+            'user' =>
+                $user->load('role'),
+
+            'token' =>
+                $token,
+
         ], 201);
     }
 }
